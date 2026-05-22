@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Martinsburg Maaco — GM Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0f0e;
+  --surface: #161714;
+  --surface2: #1d1e1b;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0ede6;
+  --text2: #888880;
+  --text3: #555550;
+  --accent: #c8f060;
+  --accent2: #a8d040;
+  --warn: #f0a030;
+  --danger: #e05040;
+  --good: #60c080;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* LOGIN SCREEN */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2rem;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+#login-screen::before {
+  content: '';
+  position: fixed;
+  top: -200px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(200,240,96,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.login-logo {
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+.login-title {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  text-align: center;
+  line-height: 1.1;
+}
+.login-title span { color: var(--accent); }
+.login-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border2);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.login-label {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-family: var(--mono);
+  margin-bottom: 4px;
+}
+.login-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: var(--mono);
+  outline: none;
+  transition: border-color .2s;
+}
+.login-input:focus { border-color: var(--accent); }
+.login-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #0e0f0e;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+}
+.login-btn:hover { background: var(--accent2); }
+.login-btn:active { transform: scale(0.98); }
+.login-error {
+  font-size: 12px;
+  color: var(--danger);
+  text-align: center;
+  font-family: var(--mono);
+  display: none;
+}
+.api-hint {
+  font-size: 11px;
+  color: var(--text3);
+  text-align: center;
+  font-family: var(--mono);
+  line-height: 1.7;
+}
+
+/* MAIN APP */
+#app { display: none; min-height: 100vh; }
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 0.5px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(14,15,14,0.95);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 1rem; }
+.header-logo {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--accent);
+}
+.header-sep { width: 1px; height: 20px; background: var(--border2); }
+.header-user {
+  font-size: 12px;
+  color: var(--text2);
+  font-family: var(--mono);
+}
+.header-date {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+.sync-status {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sync-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text3);
+}
+.sync-dot.synced { background: var(--good); }
+.sync-dot.syncing { background: var(--warn); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* NAV */
+.nav {
+  display: flex;
+  gap: 2px;
+  padding: 1rem 2rem 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.nav-btn {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .2s;
+}
+.nav-btn:hover { color: var(--text2); }
+.nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* CONTENT */
+.content { padding: 2rem; max-width: 860px; margin: 0 auto; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* NORTH STAR BAR */
+.north-star {
+  background: linear-gradient(135deg, rgba(200,240,96,0.08) 0%, rgba(200,240,96,0.03) 100%);
+  border: 0.5px solid rgba(200,240,96,0.25);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.ns-main { display: flex; flex-direction: column; }
+.ns-eyebrow { font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--accent); font-family: var(--mono); margin-bottom: 2px; }
+.ns-value { font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: -.02em; }
+.ns-sub { font-size: 12px; color: var(--text2); font-family: var(--mono); margin-top: 2px; }
+.ns-right { display: flex; gap: 2rem; }
+.ns-stat { text-align: right; }
+.ns-stat-val { font-size: 16px; font-weight: 600; color: var(--text); }
+.ns-stat-lbl { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+/* METRIC GRID */
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+.metric-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+.metric-val { font-size: 26px; font-weight: 700; letter-spacing: -.02em; line-height: 1; margin-bottom: 4px; }
+.metric-lbl { font-size: 11px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+.v-good { color: var(--good); }
+.v-warn { color: var(--warn); }
+.v-danger { color: var(--danger); }
+.v-accent { color: var(--accent); }
+
+/* SECTION LABEL */
+.section-label {
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-family: var(--mono);
+  margin: 1.5rem 0 .75rem;
+}
+
+/* CARD */
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+/* PROGRESS BAR */
+.prog-wrap { margin: .5rem 0 1.5rem; }
+.prog-track { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width .4s ease; }
+.prog-fill.warn { background: var(--warn); }
+.prog-fill.danger { background: var(--danger); }
+.prog-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 6px; }
+
+/* HOUR BUTTONS */
+.hour-grid { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.hour-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--mono);
+  border: 0.5px solid var(--border2);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .2s;
+}
+.hour-btn:hover { border-color: var(--accent); color: var(--accent); }
+.hour-btn.active { background: var(--accent); color: #0e0f0e; border-color: var(--accent); font-weight: 600; }
+.hour-btn.done { background: var(--surface2); color: var(--text3); border-color: var(--border); }
+.hour-btn.done::after { content: ' ✓'; }
+
+/* ZONE HEADER */
+.zone-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 1rem 0 .5rem;
+}
+.zone-label {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  font-weight: 500;
+}
+.zone-pill {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-weight: 500;
+}
+.z-floor { background: rgba(96,192,128,0.15); color: var(--good); }
+.z-lot { background: rgba(200,240,96,0.12); color: var(--accent); }
+.z-always { background: rgba(240,160,48,0.15); color: var(--warn); }
+
+/* CHECKLIST */
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.check-item:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; min-width: 18px;
+  border: 1.5px solid var(--border2);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+  transition: all .15s;
+}
+.check-box:hover { border-color: var(--accent); }
+.check-box.checked { background: var(--accent); border-color: var(--accent); }
+.check-box.checked::after { content: '✓'; font-size: 11px; color: #0e0f0e; font-weight: 700; }
+.check-main { font-size: 14px; color: var(--text); line-height: 1.4; }
+.check-main.checked { color: var(--text3); text-decoration: line-through; }
+.check-sub { font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.5; font-family: var(--mono); }
+
+/* WALK NOTE */
+.walk-note {
+  margin-top: .5rem;
+}
+.walk-note-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text);
+  outline: none;
+  resize: none;
+  min-height: 50px;
+  transition: border-color .2s;
+}
+.walk-note-input:focus { border-color: var(--accent); }
+
+/* BUTTONS */
+.btn {
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  border-radius: 8px;
+  border: 0.5px solid var(--border2);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn:hover { background: var(--surface2); }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--accent); color: #0e0f0e; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent2); }
+.btn-danger { background: rgba(224,80,64,0.15); color: var(--danger); border-color: rgba(224,80,64,0.3); }
+
+/* INPUTS */
+.field-group { margin-bottom: 1rem; }
+.field-label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 6px; display: block; }
+.field-input {
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+  width: 100%;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.field-row .field-group { margin-bottom: 0; flex: 1; min-width: 120px; }
+
+/* TEXTAREA */
+.field-textarea {
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+  width: 100%;
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.5;
+}
+.field-textarea:focus { border-color: var(--accent); }
+
+/* DEBRIEF Q */
+.debrief-block { margin-bottom: 1.25rem; }
+.debrief-q { font-size: 14px; font-weight: 600; margin-bottom: .5rem; color: var(--text); }
+.debrief-hint { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-bottom: .5rem; }
+
+/* AR TABLE */
+.ar-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ar-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); font-family: var(--mono); padding: 6px 8px; border-bottom: 0.5px solid var(--border2); }
+.ar-table td { padding: 9px 8px; border-bottom: 0.5px solid var(--border); font-family: var(--mono); font-size: 12px; }
+.ar-table tr:last-child td { border-bottom: none; }
+.ar-table td:first-child { font-family: var(--sans); font-size: 13px; font-weight: 500; color: var(--text); }
+.status-pill { font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: 500; font-family: var(--mono); }
+.s-ok { background: rgba(96,192,128,0.15); color: var(--good); }
+.s-warn { background: rgba(240,160,48,0.15); color: var(--warn); }
+.s-hot { background: rgba(224,80,64,0.15); color: var(--danger); }
+
+/* TIP BOX */
+.tip {
+  border-left: 2px solid var(--accent);
+  padding: .75rem 1rem;
+  font-size: 12px;
+  color: var(--text2);
+  font-family: var(--mono);
+  line-height: 1.7;
+  margin-top: 1rem;
+  background: rgba(200,240,96,0.04);
+  border-radius: 0 8px 8px 0;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--surface);
+  border: 0.5px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text);
+  z-index: 999;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all .3s;
+  max-width: 300px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { border-color: rgba(96,192,128,0.4); color: var(--good); }
+.toast.error { border-color: rgba(224,80,64,0.4); color: var(--danger); }
+
+/* COMPLETE BANNER */
+.complete-banner {
+  background: rgba(96,192,128,0.1);
+  border: 0.5px solid rgba(96,192,128,0.3);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  font-size: 13px;
+  color: var(--good);
+  font-family: var(--mono);
+  text-align: center;
+  margin-top: .75rem;
+  display: none;
+}
+
+/* LOG HISTORY */
+.log-entry {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  margin-bottom: .5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.log-time { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.log-label { font-size: 13px; color: var(--text2); }
+.log-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: rgba(200,240,96,0.12); color: var(--accent); font-family: var(--mono); }
+
+/* SETUP SCREEN */
+.setup-screen {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+}
+.setup-title { font-size: 22px; font-weight: 700; }
+.setup-sub { font-size: 14px; color: var(--text2); max-width: 440px; line-height: 1.7; }
+.setup-steps { text-align: left; background: var(--surface); border: 0.5px solid var(--border2); border-radius: 12px; padding: 1.25rem; max-width: 500px; width: 100%; }
+.step { display: flex; gap: 12px; margin-bottom: 1rem; }
+.step:last-child { margin-bottom: 0; }
+.step-num { width: 24px; height: 24px; min-width: 24px; border-radius: 50%; background: var(--accent); color: #0e0f0e; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: var(--mono); margin-top: 2px; }
+.step-text { font-size: 13px; color: var(--text2); font-family: var(--mono); line-height: 1.6; }
+.step-text a { color: var(--accent); }
+.step-text code { background: var(--surface2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+/* inline number input */
+.num-input {
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text);
+  outline: none;
+  width: 90px;
+  transition: border-color .2s;
+}
+.num-input:focus { border-color: var(--accent); }
+.inline-row { display: flex; align-items: center; gap: 10px; margin-bottom: .75rem; flex-wrap: wrap; }
+.inline-lbl { font-size: 12px; color: var(--text2); font-family: var(--mono); min-width: 180px; }
+
+button { cursor: pointer; }
+
+/* scroll */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── SCORECARD ───────────────────────────────────────────── */
+.sc-page { page-break-after: always; }
+.sc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;
+}
+.sc-logo { font-size: 13px; font-weight: 700; color: var(--accent); font-family: var(--mono); letter-spacing:.1em; }
+.sc-week { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+.standing-banner {
+  border-radius: 12px; padding: 1.25rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+}
+.standing-ni  { background: rgba(224,80,64,0.12);  border: 0.5px solid rgba(224,80,64,0.3); }
+.standing-be  { background: rgba(240,160,48,0.12); border: 0.5px solid rgba(240,160,48,0.3); }
+.standing-me  { background: rgba(200,240,96,0.08); border: 0.5px solid rgba(200,240,96,0.25); }
+.standing-ee  { background: rgba(96,192,128,0.12); border: 0.5px solid rgba(96,192,128,0.3); }
+.standing-label { font-size: 11px; text-transform: uppercase; letter-spacing:.12em; font-family:var(--mono); margin-bottom:4px; }
+.standing-value { font-size: 24px; font-weight: 700; letter-spacing:-.02em; }
+.standing-ni  .standing-value, .standing-ni  .standing-label { color: var(--danger); }
+.standing-be  .standing-value, .standing-be  .standing-label { color: var(--warn); }
+.standing-me  .standing-value, .standing-me  .standing-label { color: var(--accent); }
+.standing-ee  .standing-value, .standing-ee  .standing-label { color: var(--good); }
+.sc-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.5rem; }
+.sc-metric { background: var(--surface); border: 0.5px solid var(--border); border-radius:10px; padding:.875rem 1rem; }
+.sc-metric-val { font-size: 22px; font-weight: 700; letter-spacing:-.02em; color: var(--text); }
+.sc-metric-lbl { font-size: 10px; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); font-family:var(--mono); margin-top:3px; }
+.sc-section-title {
+  font-size: 11px; text-transform:uppercase; letter-spacing:.15em;
+  color: var(--text3); font-family:var(--mono);
+  border-bottom: 0.5px solid var(--border2); padding-bottom:.5rem;
+  margin: 1.5rem 0 1rem;
+}
+.sc-employee-card {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: .75rem;
+}
+.sc-emp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; flex-wrap:wrap; gap:.5rem; }
+.sc-emp-name { font-size: 15px; font-weight: 600; }
+.sc-emp-role { font-size: 11px; color:var(--text3); font-family:var(--mono); margin-top:2px; }
+.sc-rating-pill {
+  font-size: 11px; font-weight: 600; font-family:var(--mono);
+  padding: 4px 12px; border-radius: 20px;
+}
+.r-ni  { background:rgba(224,80,64,0.15);  color:var(--danger); }
+.r-be  { background:rgba(240,160,48,0.15); color:var(--warn); }
+.r-me  { background:rgba(200,240,96,0.12); color:var(--accent); }
+.r-ee  { background:rgba(96,192,128,0.15); color:var(--good); }
+.sc-emp-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.sc-emp-metric { text-align:center; }
+.sc-emp-metric-val { font-size:16px; font-weight:600; color:var(--text); }
+.sc-emp-metric-lbl { font-size:10px; color:var(--text3); font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+.sc-emp-bar-wrap { margin-top:.75rem; }
+.sc-emp-bar-label { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); font-family:var(--mono); margin-bottom:4px; }
+.sc-floater-toggle { display:flex; gap:6px; margin-bottom:.75rem; }
+.sc-floater-btn { padding:4px 12px; font-size:11px; font-family:var(--mono); border:0.5px solid var(--border2); border-radius:20px; background:transparent; color:var(--text3); cursor:pointer; }
+.sc-floater-btn.active { background:var(--accent); color:#0e0f0e; border-color:var(--accent); font-weight:600; }
+.upload-zone {
+  border: 1.5px dashed var(--border2); border-radius:12px; padding:2rem;
+  text-align:center; cursor:pointer; transition: border-color .2s;
+  margin-bottom: 1rem;
+}
+.upload-zone:hover { border-color: var(--accent); }
+.upload-zone-label { font-size:13px; color:var(--text2); font-family:var(--mono); margin-top:.5rem; }
+.upload-zone-sub { font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:4px; }
+.upload-icon { font-size:28px; margin-bottom:.25rem; }
+.parsed-preview { background:var(--surface2); border-radius:8px; padding:.75rem 1rem; font-size:12px; font-family:var(--mono); color:var(--text2); margin-bottom:1rem; max-height:200px; overflow-y:auto; }
+.manual-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+@media print {
+  .header, .nav, .north-star, #panel-scorecard .upload-zone,
+  #panel-scorecard .btn, #panel-scorecard .manual-grid,
+  #panel-scorecard .parsed-preview, .tip { display:none !important; }
+  body { background: white !important; color: #111 !important; }
+  .sc-employee-card, .sc-metric, .standing-banner { border-color: #ddd !important; background: #fff !important; }
+  .sc-metric-val, .sc-emp-name, .sc-emp-metric-val { color: #111 !important; }
+  .sc-metric-lbl, .sc-emp-metric-lbl, .sc-emp-role, .sc-week { color: #555 !important; }
+  .panel { display: block !important; }
+  #panel-scorecard { display: block !important; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-logo">Martinsburg Maaco</div>
+  <div class="login-title">GM Operations<br><span>Command Center</span></div>
+  <div class="login-card">
+    <div>
+      <div class="login-label">Email address</div>
+      <input class="login-input" id="login-email" type="email" placeholder="yourname@maacomb.com" autocomplete="email">
+    </div>
+    <div>
+      <div class="login-label">Password</div>
+      <input class="login-input" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="login-error" id="login-error">Access denied.</div>
+    <button class="login-btn" onclick="doLogin()">Enter Portal</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo">MAACO MTB</div>
+      <div class="header-sep"></div>
+      <div class="header-user" id="header-user">—</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:1.5rem">
+      <div class="sync-status">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">not synced</span>
+      </div>
+      <div class="header-date" id="header-date">—</div>
+      <button class="btn" style="padding:5px 12px;font-size:12px" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="switchTab('walk',this)">Hourly Walk</button>
+    <button class="nav-btn" onclick="switchTab('flow',this)">Daily Flow</button>
+    <button class="nav-btn" onclick="switchTab('debrief',this)">2PM Debrief</button>
+    <button class="nav-btn" onclick="switchTab('ar',this)">AR Tracker</button>
+    <button class="nav-btn" onclick="switchTab('log',this)">Activity Log</button>
+    <button class="nav-btn owner-only" id="owner-tab-btn" onclick="switchTab('owner',this)" style="display:none;color:#c8f060">Owner View</button>
+    <button class="nav-btn" id="scorecard-tab-btn" onclick="switchTab('scorecard',this)">Weekly Scorecard</button>
+  </div>
+
+  <div class="content">
+
+    <!-- NORTH STAR -->
+    <div class="north-star">
+      <div class="ns-main">
+        <div class="ns-eyebrow">Weekly north star</div>
+        <div class="ns-value">$24,000 by Wednesday</div>
+        <div class="ns-sub">≈ $8,000/day &nbsp;·&nbsp; ≈ 4–5 cars completed daily</div>
+      </div>
+      <div class="ns-right">
+        <div class="ns-stat">
+          <div class="ns-stat-val" id="ns-wtd">$0</div>
+          <div class="ns-stat-lbl">Week-to-date</div>
+        </div>
+        <div class="ns-stat">
+          <div class="ns-stat-val" id="ns-gap" style="color:var(--warn)">$24,000</div>
+          <div class="ns-stat-lbl">Gap to target</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WALK PANEL -->
+    <div class="panel active" id="panel-walk">
+      <div style="font-size:18px;font-weight:700;margin-bottom:.25rem">Hourly Walk</div>
+      <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:1.25rem">Select the current hour — complete every item before moving on.</div>
+
+      <div class="hour-grid" id="hour-grid">
+        <button class="hour-btn" onclick="selectHour(this,'8AM')">8AM</button>
+        <button class="hour-btn" onclick="selectHour(this,'9AM')">9AM</button>
+        <button class="hour-btn" onclick="selectHour(this,'10AM')">10AM</button>
+        <button class="hour-btn" onclick="selectHour(this,'11AM')">11AM</button>
+        <button class="hour-btn" onclick="selectHour(this,'12PM')">12PM</button>
+        <button class="hour-btn" onclick="selectHour(this,'1PM')">1PM</button>
+        <button class="hour-btn" onclick="selectHour(this,'2PM')">2PM ★</button>
+        <button class="hour-btn" onclick="selectHour(this,'3PM')">3PM</button>
+        <button class="hour-btn" onclick="selectHour(this,'4PM')">4PM</button>
+        <button class="hour-btn" onclick="selectHour(this,'5PM')">5PM ✦</button>
+      </div>
+
+      <div id="walk-checklist-area"></div>
+
+      <div class="complete-banner" id="walk-complete">Walk logged ✓ — Back on the floor.</div>
+      <div style="display:flex;gap:8px;margin-top:1rem">
+        <button class="btn btn-primary" onclick="logWalk()">Log this walk ↗</button>
+        <button class="btn" onclick="resetChecklist()">Reset</button>
+      </div>
+
+      <div class="tip">
+        <strong>Rule:</strong> If you walked and found nothing to fix, you weren't looking hard enough. Every walk produces at least one action item.
+      </div>
+    </div>
+
+    <!-- FLOW PANEL -->
+    <div class="panel" id="panel-flow">
+      <div style="font-size:18px;font-weight:700;margin-bottom:.25rem">Daily Production Plan</div>
+      <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:1.25rem">Set this before 7:30AM. This is your contract with yourself for the day.</div>
+
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-val v-accent" id="fm-cars">0</div><div class="metric-lbl">Cars completing today</div></div>
+        <div class="metric-card"><div class="metric-val v-accent" id="fm-rev">$0</div><div class="metric-lbl">Projected day revenue</div></div>
+        <div class="metric-card"><div class="metric-val" id="fm-pct">0%</div><div class="metric-lbl">Weekly target progress</div></div>
+      </div>
+
+      <div class="prog-wrap">
+        <div class="prog-track"><div class="prog-fill" id="flow-bar" style="width:0%"></div></div>
+        <div class="prog-meta"><span id="flow-bar-label">$0 of $24,000</span><span id="flow-bar-pct">0%</span></div>
+      </div>
+
+      <div class="card">
+        <div class="section-label" style="margin-top:0">Today's plan</div>
+        <div class="inline-row"><div class="inline-lbl">Cars completing today</div><input class="num-input" id="fp-cars" type="number" min="0" placeholder="0" oninput="calcFlow()"></div>
+        <div class="inline-row"><div class="inline-lbl">Average ARO on those cars ($)</div><input class="num-input" id="fp-aro" type="number" placeholder="0" oninput="calcFlow()"></div>
+        <div class="inline-row"><div class="inline-lbl">Week-to-date revenue ($)</div><input class="num-input" id="fp-wtd" type="number" placeholder="0" oninput="calcFlow()"></div>
+        <div class="inline-row"><div class="inline-lbl">Cars currently in booth</div><input class="num-input" id="fp-booth" type="number" min="0" placeholder="0"></div>
+        <div class="inline-row"><div class="inline-lbl">Cars in prep / masking</div><input class="num-input" id="fp-prep" type="number" min="0" placeholder="0"></div>
+        <div class="inline-row"><div class="inline-lbl">Cars waiting / not started</div><input class="num-input" id="fp-wait" type="number" min="0" placeholder="0"></div>
+
+        <div class="field-group" style="margin-top:1rem">
+          <label class="field-label">Plan notes / priorities for today</label>
+          <textarea class="field-textarea" id="fp-notes" placeholder="e.g. Push Tahoe through paint first — it's been 4 days. Get Civic written up by 9AM."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="logFlow()">Save daily plan ↗</button>
+      </div>
+
+      <div class="tip">
+        <strong>Target cadence:</strong> 4–5 cars/day at $1,600–$2,200 blended ARO = $24K by Wednesday. Spot jobs (under $800) = same-day or next-day turns. Overalls = never sit more than 5 working days.
+      </div>
+    </div>
+
+    <!-- DEBRIEF PANEL -->
+    <div class="panel" id="panel-debrief">
+      <div style="font-size:18px;font-weight:700;margin-bottom:.25rem">2PM Debrief</div>
+      <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:1.25rem">Everyone present. 10 minutes max. Past is past — this is a plan for tomorrow.</div>
+
+      <div class="card">
+        <div class="debrief-block">
+          <div class="debrief-q">1. How many cars completed today, and what did we bill?</div>
+          <div class="debrief-hint">Be specific with numbers. No rounding.</div>
+          <textarea class="field-textarea" id="db-1" placeholder="e.g. 3 cars · $5,200 billed · Unit #14 missed promise date by 1 day"></textarea>
+        </div>
+        <div class="debrief-block">
+          <div class="debrief-q">2. What slowed us down? (parts / people / process — be specific)</div>
+          <div class="debrief-hint">Name the bottleneck, name the time lost.</div>
+          <textarea class="field-textarea" id="db-2" placeholder="e.g. Painter waited 45 min at 10AM — masking on Accord wasn't done. Prep pipeline broke."></textarea>
+        </div>
+        <div class="debrief-block">
+          <div class="debrief-q">3. What are the first 3 cars going into paint tomorrow, in order?</div>
+          <div class="debrief-hint">This list is confirmed before everyone leaves today.</div>
+          <textarea class="field-textarea" id="db-3" placeholder="1. Blue Civic (full overall, due Fri) · 2. Red F-150 spot · 3. White Camry (overall, due Mon)"></textarea>
+        </div>
+        <div class="debrief-block">
+          <div class="debrief-q">4. What does each person start on tomorrow at 7AM?</div>
+          <div class="debrief-hint">Every tech and prepper leaves today knowing their first task tomorrow.</div>
+          <textarea class="field-textarea" id="db-4" placeholder="Tech 1: body on Silverado · Tech 2: reassembly Accord · Preppers: mask Civic + rough sand F-150"></textarea>
+        </div>
+        <div class="debrief-block">
+          <div class="debrief-q">5. Are we on track for $24K by Wednesday? What's the gap?</div>
+          <textarea class="field-textarea" id="db-5" placeholder="e.g. $11K WTD, 2 days left, need $13K. 6 cars in process. Achievable if Tahoe clears paint tomorrow."></textarea>
+        </div>
+        <div class="debrief-block">
+          <div class="debrief-q">Stefany's one commitment for tomorrow</div>
+          <div class="debrief-hint">One specific, actionable thing. Not a vague goal.</div>
+          <textarea class="field-textarea" id="db-6" style="min-height:50px" placeholder="e.g. I'm personally staging the next 2 cars for paint before I leave today."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="logDebrief()">Log debrief ↗</button>
+      </div>
+
+      <div class="tip">
+        <strong>Ground rule:</strong> If the team talks about what went wrong for more than 2 minutes, redirect: "What are we doing about it tomorrow?" This meeting is about the plan, not the postmortem.
+      </div>
+    </div>
+
+    <!-- AR PANEL -->
+    <div class="panel" id="panel-ar">
+      <div style="font-size:18px;font-weight:700;margin-bottom:.25rem">Accounts Receivable</div>
+      <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:1.25rem">Pull the aging report every morning. Any car over 3 days done = action required today.</div>
+
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-val v-danger" id="ar-hot">0</div><div class="metric-lbl">7+ days — Act now</div></div>
+        <div class="metric-card"><div class="metric-val v-warn" id="ar-warn">0</div><div class="metric-lbl">4–6 days — Follow up</div></div>
+        <div class="metric-card"><div class="metric-val v-good" id="ar-ok">0</div><div class="metric-lbl">1–3 days — On track</div></div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:1rem">Outstanding invoices</div>
+        <table class="ar-table">
+          <thead><tr><th>Customer</th><th>Invoice #</th><th>Days out</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="ar-body"><tr><td colspan="6" style="color:var(--text3);text-align:center;padding:1.5rem;font-family:var(--mono);font-size:12px">No invoices logged yet</td></tr></tbody>
+        </table>
+
+        <div style="border-top:0.5px solid var(--border);margin-top:1rem;padding-top:1rem">
+          <div class="section-label" style="margin-top:0">Add invoice</div>
+          <div class="field-row" style="margin-bottom:.75rem">
+            <div class="field-group"><label class="field-label">Customer name</label><input class="field-input" id="ar-name" type="text" placeholder="Smith, John"></div>
+            <div class="field-group"><label class="field-label">Invoice #</label><input class="field-input" id="ar-inv" type="text" placeholder="INV-0042"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label class="field-label">Days outstanding</label><input class="field-input" id="ar-days" type="number" min="0" placeholder="0"></div>
+            <div class="field-group"><label class="field-label">Amount ($)</label><input class="field-input" id="ar-amt" type="number" placeholder="0"></div>
+            <div class="field-group"><label class="field-label">Notes</label><input class="field-input" id="ar-notes" type="text" placeholder="Left voicemail, etc."></div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:.75rem" onclick="addAR()">Add invoice ↗</button>
+        </div>
+      </div>
+
+      <div class="tip">
+        <strong>AR rule:</strong> Done car + unpaid invoice = money you already earned sitting in someone else's pocket.<br>
+        Same day done → call customer. 3 days → follow-up call (Katie). 7 days → Stefany calls personally. Don't let AR age silently.
+      </div>
+    </div>
+
+    <!-- LOG PANEL -->
+    <div class="panel" id="panel-log">
+      <div style="font-size:18px;font-weight:700;margin-bottom:.25rem">Activity Log</div>
+      <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:1.25rem">Everything logged today — synced to Google Sheets.</div>
+      <div id="log-list"><div style="color:var(--text3);font-family:var(--mono);font-size:13px;padding:2rem 0;text-align:center">No activity logged yet today. Start with your first hourly walk.</div></div>
+    </div>
+
+    <!-- OWNER PANEL -->
+    <div class="panel" id="panel-owner">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem;flex-wrap:wrap;gap:1rem">
+        <div style="font-size:18px;font-weight:700">Owner Scorecard</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--text3);background:rgba(200,240,96,0.08);border:0.5px solid rgba(200,240,96,0.2);padding:4px 10px;border-radius:20px;color:var(--accent)">Owner access</div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:1.5rem">Track Stefany's consistency, score her weekly performance, and leave coaching notes.</div>
+
+      <!-- SCORECARD METRICS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem">
+        <div class="metric-card"><div class="metric-val v-accent" id="sc-walks">—</div><div class="metric-lbl">Walks logged today</div></div>
+        <div class="metric-card"><div class="metric-val" id="sc-debrief" style="color:var(--text2)">—</div><div class="metric-lbl">Debrief logged</div></div>
+        <div class="metric-card"><div class="metric-val" id="sc-ar" style="color:var(--text2)">—</div><div class="metric-lbl">AR entries today</div></div>
+        <div class="metric-card"><div class="metric-val" id="sc-wtd" style="color:var(--text2)">$0</div><div class="metric-lbl">WTD revenue logged</div></div>
+      </div>
+
+      <!-- WEEKLY PERFORMANCE SCORE -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-size:14px;font-weight:600;margin-bottom:1rem">Weekly performance score</div>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:var(--text2);font-family:var(--mono)">Hourly walks completed</span><span style="font-size:12px;font-family:var(--mono)" id="score-walks-lbl">0 / 40 target</span></div>
+            <div class="prog-track"><div class="prog-fill warn" id="score-walks-bar" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:var(--text2);font-family:var(--mono)">Debriefs held this week</span><span style="font-size:12px;font-family:var(--mono)" id="score-debrief-lbl">0 / 5 target</span></div>
+            <div class="prog-track"><div class="prog-fill warn" id="score-debrief-bar" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:var(--text2);font-family:var(--mono)">Revenue vs $24K target</span><span style="font-size:12px;font-family:var(--mono)" id="score-rev-lbl">$0 / $24,000</span></div>
+            <div class="prog-track"><div class="prog-fill warn" id="score-rev-bar" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:var(--text2);font-family:var(--mono)">AR entries managed</span><span style="font-size:12px;font-family:var(--mono)" id="score-ar-lbl">0 logged</span></div>
+            <div class="prog-track"><div class="prog-fill" id="score-ar-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <div style="border-top:0.5px solid var(--border);margin-top:1.25rem;padding-top:1rem;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px">Overall score</div>
+            <div style="font-size:32px;font-weight:700;letter-spacing:-.02em" id="overall-score">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px">Rating</div>
+            <div style="font-size:14px;font-weight:600" id="overall-rating">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEKLY SCORE INPUTS -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-size:14px;font-weight:600;margin-bottom:1rem">Update weekly numbers</div>
+        <div class="inline-row"><div class="inline-lbl">Walks completed this week</div><input class="num-input" id="ow-walks" type="number" min="0" placeholder="0" oninput="calcOwnerScore()"></div>
+        <div class="inline-row"><div class="inline-lbl">Debriefs held this week</div><input class="num-input" id="ow-debriefs" type="number" min="0" max="5" placeholder="0" oninput="calcOwnerScore()"></div>
+        <div class="inline-row"><div class="inline-lbl">Week-to-date revenue ($)</div><input class="num-input" id="ow-rev" type="number" placeholder="0" oninput="calcOwnerScore()"></div>
+        <div class="inline-row"><div class="inline-lbl">AR invoices managed</div><input class="num-input" id="ow-ar" type="number" min="0" placeholder="0" oninput="calcOwnerScore()"></div>
+      </div>
+
+      <!-- COACHING NOTES -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-size:14px;font-weight:600;margin-bottom:.5rem">Coaching notes for Stefany</div>
+        <div style="font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:.75rem">These are private owner notes. Stefany does not see this tab.</div>
+        <div class="debrief-block">
+          <div class="debrief-q" style="font-size:13px">What is she doing well this week?</div>
+          <textarea class="field-textarea" id="cn-good" placeholder="e.g. Consistent with walks Mon–Wed. Starting to push the painter pipeline proactively."></textarea>
+        </div>
+        <div class="debrief-block">
+          <div class="debrief-q" style="font-size:13px">What needs direct coaching?</div>
+          <textarea class="field-textarea" id="cn-improve" placeholder="e.g. Still spending too much time in the office in the afternoons. AR follow-up is not happening same-day."></textarea>
+        </div>
+        <div class="debrief-block">
+          <div class="debrief-q" style="font-size:13px">What is the one focus for next week?</div>
+          <textarea class="field-textarea" id="cn-focus" style="min-height:50px" placeholder="e.g. Car mix — she needs to understand the spot/overall ratio and manage the board to it."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="saveCoachingNotes()">Save coaching notes ↗</button>
+      </div>
+
+      <div class="tip">
+        <strong>Owner rule:</strong> If you're not reviewing this scorecard weekly, you're managing by feel. The numbers tell you whether Stefany is building habits or just showing up. Consistency over 30 days = a GM. Inconsistency = more coaching needed.
+      </div>
+    </div>
+
+
+    <!-- SCORECARD PANEL -->
+    <div class="panel" id="panel-scorecard">
+
+      <!-- HEADER -->
+      <div class="sc-header">
+        <div>
+          <div class="sc-logo">Martinsburg Maaco</div>
+          <div style="font-size:18px;font-weight:700;margin-top:4px">Weekly Performance Scorecard</div>
+        </div>
+        <div style="text-align:right">
+          <div class="sc-week" id="sc-week-label">Week of —</div>
+          <div style="display:flex;gap:8px;margin-top:.5rem;justify-content:flex-end">
+            <button class="btn btn-primary" onclick="window.print()">Print ↗</button>
+            <button class="btn" onclick="resetScorecard()">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CCC UPLOAD -->
+      <div class="section-label" style="margin-top:0">Step 1 — Upload CCC ONE closed RO export (Excel/CSV)</div>
+      <div class="upload-zone" onclick="document.getElementById('ccc-file-input').click()">
+        <div class="upload-icon">📂</div>
+        <div class="upload-zone-label">Click to upload CCC ONE export</div>
+        <div class="upload-zone-sub">Closed RO Export — CSV · Columns: RO Closed, Posted Date, Vehicle Out, RO#, Owner, Insurance, Vehicle, Target Date, Days in Shop, Estimator, RO Hours, Estimate $, Total</div>
+      </div>
+      <input type="file" id="ccc-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="parseCCCFile(this)">
+      <div class="parsed-preview" id="ccc-preview" style="display:none"></div>
+
+      <!-- MANUAL INPUTS -->
+      <div class="section-label">Step 2 — Upload CCC Technician Labor Report (optional)</div>
+      <div class="upload-zone" onclick="document.getElementById('labor-file-input').click()">
+        <div class="upload-icon">🔧</div>
+        <div class="upload-zone-label">Click to upload CCC Technician Hours report</div>
+        <div class="upload-zone-sub">CSV export from CCC ONE → Reports → Production → Technician Hours · Must include technician name and total labor hours</div>
+      </div>
+      <input type="file" id="labor-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="parseLaborFile(this)">
+      <div class="parsed-preview" id="labor-preview" style="display:none"></div>
+
+      <div class="section-label">Step 3 — Manual inputs (from walk logs + painter tracking)</div>
+      <div class="manual-grid">
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:13px;font-weight:600;margin-bottom:.75rem;color:var(--accent)">Joshua Dyer — Painter</div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Booth cycles Mon</div><input class="num-input" id="p-mon" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Booth cycles Tue</div><input class="num-input" id="p-tue" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Booth cycles Wed</div><input class="num-input" id="p-wed" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Booth cycles Thu</div><input class="num-input" id="p-thu" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Booth cycles Fri</div><input class="num-input" id="p-fri" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Redos this week</div><input class="num-input" id="p-redo" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:13px;font-weight:600;margin-bottom:.75rem;color:var(--accent)">Body Tech Hours <span style="font-size:10px;color:var(--text3);font-family:var(--mono);font-weight:400">— auto-fills from labor upload</span></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Dennis Hadley — labor hrs</div><input class="num-input" id="bt-dennis" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Dalton Barlow — labor hrs</div><input class="num-input" id="bt-dalton" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div style="font-size:13px;font-weight:600;margin:.75rem 0;color:var(--accent)">Pipeline Breaks (walk logs)</div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Darnell Bruce</div><input class="num-input" id="pp-darnell-breaks" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Cole McIntock</div><input class="num-input" id="pp-cole-breaks" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Eric Vanmetre</div><input class="num-input" id="pp-eric-breaks" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+          <div class="inline-row"><div class="inline-lbl" style="font-size:12px">Anthony Sanford</div><input class="num-input" id="pp-anthony-breaks" type="number" min="0" placeholder="0" oninput="calcScorecard()"></div>
+        </div>
+      </div>
+
+      <!-- PREPPER TIMES -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-size:13px;font-weight:600;margin-bottom:.75rem;color:var(--accent)">Prepper Avg Times This Week (from walk logs)</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr>
+                <th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 8px;border-bottom:0.5px solid var(--border2)">Prepper</th>
+                <th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 8px;border-bottom:0.5px solid var(--border2)">Spot Sand (hrs)</th>
+                <th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 8px;border-bottom:0.5px solid var(--border2)">Spot Tape (hrs)</th>
+                <th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 8px;border-bottom:0.5px solid var(--border2)">Overall Sand (hrs)</th>
+                <th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 8px;border-bottom:0.5px solid var(--border2)">Overall Tape (hrs)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding:5px 8px;font-weight:500">Darnell Bruce</td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-darnell-ss" type="number" step="0.5" placeholder="0.5" title="Spot benchmark: 0.5h" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-darnell-st" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-darnell-os" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-darnell-ot" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td></tr>
+              <tr><td style="padding:5px 8px;font-weight:500">Cole McIntock</td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-cole-ss" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-cole-st" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-cole-os" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-cole-ot" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td></tr>
+              <tr><td style="padding:5px 8px;font-weight:500">Eric Vanmetre</td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-eric-ss" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-eric-st" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-eric-os" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-eric-ot" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td></tr>
+              <tr><td style="padding:5px 8px;font-weight:500">Anthony Sanford</td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-anthony-ss" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-anthony-st" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-anthony-os" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td><td style="padding:5px 8px"><input class="num-input" style="width:70px" id="pp-anthony-ot" type="number" step="0.5" placeholder="0.0" oninput="calcScorecard()"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="calcScorecard()" style="margin-bottom:1.5rem">Generate Scorecard ↗</button>
+
+      <!-- RENDERED SCORECARD -->
+      <div id="scorecard-output" style="display:none">
+
+        <!-- TEAM STANDING -->
+        <div class="sc-section-title">Team Standing</div>
+        <div class="standing-banner" id="team-banner">
+          <div>
+            <div class="standing-label">Overall Standing</div>
+            <div class="standing-value" id="team-standing-val">—</div>
+          </div>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+            <div class="ns-stat"><div class="ns-stat-val" id="ts-revenue">—</div><div class="ns-stat-lbl">Weekly Revenue</div></div>
+            <div class="ns-stat"><div class="ns-stat-val" id="ts-cars">—</div><div class="ns-stat-lbl">Cars Completed</div></div>
+            <div class="ns-stat"><div class="ns-stat-val" id="ts-aro">—</div><div class="ns-stat-lbl">Avg Repair Order</div></div>
+            <div class="ns-stat"><div class="ns-stat-val" id="ts-cycle">—</div><div class="ns-stat-lbl">Avg Cycle Time</div></div>
+            <div class="ns-stat"><div class="ns-stat-val" id="ts-hours">—</div><div class="ns-stat-lbl">Total Labor Hrs</div></div>
+          </div>
+        </div>
+
+        <!-- PAINTER -->
+        <div class="sc-section-title">Painter</div>
+        <div class="sc-employee-card" id="card-joshua">
+          <div class="sc-emp-header">
+            <div>
+              <div class="sc-emp-name">Joshua Dyer</div>
+              <div class="sc-emp-role">Painter</div>
+            </div>
+            <div class="sc-rating-pill" id="rating-joshua">—</div>
+          </div>
+          <div class="sc-emp-metrics">
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="jd-cycles">—</div><div class="sc-emp-metric-lbl">Avg Cycles/Day</div></div>
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="jd-total">—</div><div class="sc-emp-metric-lbl">Total Cycles</div></div>
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="jd-redo">—</div><div class="sc-emp-metric-lbl">Redos</div></div>
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="jd-best">—</div><div class="sc-emp-metric-lbl">Best Day</div></div>
+          </div>
+          <div class="sc-emp-bar-wrap">
+            <div class="sc-emp-bar-label"><span>Cycles/day avg</span><span id="jd-bar-label">0 / 5 target</span></div>
+            <div class="prog-track"><div class="prog-fill" id="jd-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <!-- BODY TECHS -->
+        <div class="sc-section-title">Body Technicians</div>
+        <div class="sc-employee-card" id="card-dennis">
+          <div class="sc-emp-header">
+            <div><div class="sc-emp-name">Dennis Hadley</div><div class="sc-emp-role">Body Technician</div></div>
+            <div class="sc-rating-pill" id="rating-dennis">—</div>
+          </div>
+          <div class="sc-emp-metrics">
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="dh-hours">—</div><div class="sc-emp-metric-lbl">Labor Hours</div></div>
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="dh-target">100</div><div class="sc-emp-metric-lbl">Exceeds Target</div></div>
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="dh-pct">—</div><div class="sc-emp-metric-lbl">vs Target</div></div>
+          </div>
+          <div class="sc-emp-bar-wrap">
+            <div class="sc-emp-bar-label"><span>Labor hours</span><span id="dh-bar-label">0 / 100 exceeds</span></div>
+            <div class="prog-track"><div class="prog-fill" id="dh-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="sc-employee-card" id="card-dalton">
+          <div class="sc-emp-header">
+            <div><div class="sc-emp-name">Robert "Dalton" Barlow</div><div class="sc-emp-role">Body Technician</div></div>
+            <div class="sc-rating-pill" id="rating-dalton">—</div>
+          </div>
+          <div class="sc-emp-metrics">
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="rb-hours">—</div><div class="sc-emp-metric-lbl">Labor Hours</div></div>
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="rb-target">100</div><div class="sc-emp-metric-lbl">Exceeds Target</div></div>
+            <div class="sc-emp-metric"><div class="sc-emp-metric-val" id="rb-pct">—</div><div class="sc-emp-metric-lbl">vs Target</div></div>
+          </div>
+          <div class="sc-emp-bar-wrap">
+            <div class="sc-emp-bar-label"><span>Labor hours</span><span id="rb-bar-label">0 / 100 exceeds</span></div>
+            <div class="prog-track"><div class="prog-fill" id="rb-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <!-- PREPPERS -->
+        <div class="sc-section-title">Prep Team</div>
+        <div id="prepper-cards"></div>
+
+      </div><!-- /scorecard-output -->
+
+      <div class="tip">
+        <strong>Posting rule:</strong> Print individual cards only — painter, body techs, preppers. Team standing is for Stefany and owners. Post in the break room by Monday morning. Ratings must be honest — if everyone exceeds expectations every week, the scorecard loses its value.
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────
+var ALLOWED = ['sfrey@maacomb.com','jaren@maacomb.com','rlesit@maacomb.com'];
+var PORTAL_PASSWORD = 'MaacoMB';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxayM1hKoruQYGuzmoSaywfgIFQFAE0ikaUmIJ9jIHtQytHH5gBA6XljdAgeTEzqwSyWg/exec';
+var state = {
+  email: '',
+  currentHour: '',
+  arData: [],
+  logEntries: [],
+  weeklyTarget: 24000,
+  wtd: 0
+};
+
+// ─── PERSISTENCE ─────────────────────────────────────────────────
+function save() {
+  try { localStorage.setItem('maaco_state', JSON.stringify(state)); } catch(e){}
+}
+function load() {
+  try {
+    var s = localStorage.getItem('maaco_state');
+    if (s) {
+      var parsed = JSON.parse(s);
+      state.arData = parsed.arData || [];
+      state.logEntries = parsed.logEntries || [];
+      state.wtd = parsed.wtd || 0;
+      state.ownerScore = parsed.ownerScore || null;
+      state.coachingNotes = parsed.coachingNotes || null;
+      state.lastPrepData = parsed.lastPrepData || [];
+    }
+  } catch(e){}
+}
+
+// ─── LOGIN ───────────────────────────────────────────────────────
+function doLogin() {
+  var email = document.getElementById('login-email').value.trim().toLowerCase();
+  var password = document.getElementById('login-password').value;
+  var err = document.getElementById('login-error');
+
+  if (!ALLOWED.includes(email) || password !== PORTAL_PASSWORD) {
+    err.style.display = 'block';
+    err.textContent = 'Incorrect email or password.';
+    return;
+  }
+
+  state.email = email;
+  err.style.display = 'none';
+
+  sessionStorage.setItem('maaco_session', JSON.stringify({email:email}));
+  load();
+  initApp();
+}
+
+function doLogout() {
+  sessionStorage.removeItem('maaco_session');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function checkSession() {
+  try {
+    var s = sessionStorage.getItem('maaco_session');
+    if (s) {
+      var p = JSON.parse(s);
+      if (ALLOWED.includes(p.email)) {
+        state.email = p.email;
+        load();
+        initApp();
+        return;
+      }
+    }
+  } catch(e){}
+}
+
+// ─── OWNERS ──────────────────────────────────────────────────────
+var OWNERS = ['jaren@maacomb.com','rlesit@maacomb.com'];
+function isOwner() { return OWNERS.includes(state.email); }
+
+// ─── INIT APP ────────────────────────────────────────────────────
+function initApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  var names = {'sfrey@maacomb.com':'Stefany Frey','jaren@maacomb.com':'Jaren','rlesit@maacomb.com':'Ryan'};
+  var name = names[state.email] || state.email;
+  var role = isOwner() ? ' · Owner' : ' · GM';
+  document.getElementById('header-user').textContent = name + role;
+
+  // show/hide owner tab
+  var ownerBtn = document.getElementById('owner-tab-btn');
+  if (isOwner()) { ownerBtn.style.display = 'block'; }
+  else { ownerBtn.style.display = 'none'; }
+
+  var now = new Date();
+  document.getElementById('header-date').textContent = now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+
+  renderAR();
+  renderLog();
+  updateNorthStar();
+  updateOwnerScorecard();
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active')});
+  document.getElementById('panel-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+// ─── WALK ─────────────────────────────────────────────────────────
+var LOT_HOURS = ['8AM','11AM','2PM','5PM'];
+var CALLOUT_HOURS = ['8AM','11AM','2PM','5PM'];
+var EOD_HOUR = '5PM';
+
+function isLotHour(h) { return LOT_HOURS.includes(h); }
+function isCalloutHour(h) { return CALLOUT_HOURS.includes(h); }
+function isEOD(h) { return h === EOD_HOUR; }
+
+function buildWalkHTML(hour) {
+  var eod = isEOD(hour);
+  var lot = isLotHour(hour);
+  var callout = isCalloutHour(hour);
+  var html = '';
+
+  // ── PRODUCTION FLOOR ──────────────────────────────────────────
+  if (!eod) {
+    html += '<div class="card" style="margin-bottom:.75rem">';
+    html += '<div class="zone-header"><div class="zone-label">Production Floor</div><div class="zone-pill z-floor">floor</div></div>';
+    html += checkItem('Every tech is actively working on an assigned car','Idle = blocked. Ask: "What are you waiting for?" Fix it on the spot.');
+    html += checkItem('Each car\'s current stage matches its expected stage','Ask the tech: "Where should this car be by 2PM?" No answer = no plan.');
+    html += checkItem('Painter has a car in booth — or one staged and ready to enter','Empty booth = dead revenue. Painter should never hunt for what\'s next.');
+    html += checkItem('Next 2 cars for paint are prepped and masking underway','Pipeline rule: always 2 cars ahead of the booth. Always.');
+    html += checkItem('No car sitting still without a documented reason','Parts wait? Approval pending? Log it below. Two occurrences = escalate.');
+
+    // ── BOOTH OUTPUT ──────────────────────────────────────────
+    html += '<div style="border-top:0.5px solid var(--border);margin-top:.75rem;padding-top:.75rem">';
+    html += '<div class="zone-label" style="margin-bottom:.5rem">Paint booth output</div>';
+    html += '<div class="inline-row" style="margin-bottom:.5rem"><div class="inline-lbl" style="min-width:220px;font-size:12px">Did a car exit the booth since last walk?</div>';
+    html += '<select class="num-input" id="booth-exit" style="width:100px"><option value="">—</option><option>Yes</option><option>No</option></select></div>';
+    html += '<div class="inline-row"><div class="inline-lbl" style="min-width:220px;font-size:12px">Which car / unit # (if yes)</div>';
+    html += '<input class="num-input" id="booth-car" type="text" style="width:140px" placeholder="e.g. Unit 14"></div>';
+    html += '</div>';
+
+    // ── PREP TIME TRACKER ─────────────────────────────────────
+    html += '<div style="border-top:0.5px solid var(--border);margin-top:.75rem;padding-top:.75rem">';
+    html += '<div class="zone-label" style="margin-bottom:.25rem">Prep time tracker — up to 4 cars</div>';
+    html += '<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:.75rem">Log elapsed time for each car currently in prep. Track sand and tape separately.</div>';
+    html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:480px">';
+    html += '<thead><tr>';
+    html += '<th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 6px;border-bottom:0.5px solid var(--border2);width:22%">Car / Unit</th>';
+    html += '<th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 6px;border-bottom:0.5px solid var(--border2);width:20%">Job type</th>';
+    html += '<th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 6px;border-bottom:0.5px solid var(--border2);width:20%">Sand time (hrs)</th>';
+    html += '<th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 6px;border-bottom:0.5px solid var(--border2);width:20%">Tape time (hrs)</th>';
+    html += '<th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);padding:4px 6px;border-bottom:0.5px solid var(--border2);width:18%">Status</th>';
+    html += '</tr></thead><tbody>';
+    var prev = state.lastPrepData || [];
+    var slot = 0;
+    for (var p = 0; p < prev.length && slot < 4; p++) {
+      if (prev[p].status !== 'Done' && prev[p].car) {
+        var pd = prev[p];
+        var idx = slot + 1;
+        var sandBg = pd.sand ? 'background:rgba(200,240,96,0.08)' : '';
+        var tapeBg = pd.tape ? 'background:rgba(200,240,96,0.08)' : '';
+        html += '<tr>';
+        html += '<td style="padding:5px 6px"><input class="num-input" style="width:100%" id="prep-car-'+idx+'" type="text" value="'+pd.car+'" placeholder="Unit '+idx+'"></td>';
+        html += '<td style="padding:5px 6px"><select class="num-input" style="width:100%" id="prep-type-'+idx+'"><option value="">—</option>';
+        ['Spot','Overall','Panel'].forEach(function(t){ html += '<option'+(pd.type===t?' selected':'')+'>'+t+'</option>'; });
+        html += '</select></td>';
+        html += '<td style="padding:5px 6px;'+sandBg+'"><input class="num-input" style="width:100%;'+(pd.sand?'color:var(--accent)':'')+'" id="prep-sand-'+idx+'" type="number" step="0.5" min="0" value="'+(pd.sand||'')+'" placeholder="0.0" title="Last walk: '+(pd.sand||0)+'h"></td>';
+        html += '<td style="padding:5px 6px;'+tapeBg+'"><input class="num-input" style="width:100%;'+(pd.tape?'color:var(--accent)':'')+'" id="prep-tape-'+idx+'" type="number" step="0.5" min="0" value="'+(pd.tape||'')+'" placeholder="0.0" title="Last walk: '+(pd.tape||0)+'h"></td>';
+        html += '<td style="padding:5px 6px"><select class="num-input" style="width:100%" id="prep-status-'+idx+'"><option value="">—</option>';
+        ['Sanding','Taping','Done','Waiting'].forEach(function(s){ html += '<option'+(pd.status===s?' selected':'')+'>'+s+'</option>'; });
+        html += '</select></td>';
+        html += '</tr>';
+        slot++;
+      }
+    }
+    for (var i = slot + 1; i <= 4; i++) {
+      html += '<tr>';
+      html += '<td style="padding:5px 6px"><input class="num-input" style="width:100%" id="prep-car-'+i+'" type="text" placeholder="Unit '+i+'"></td>';
+      html += '<td style="padding:5px 6px"><select class="num-input" style="width:100%" id="prep-type-'+i+'"><option value="">—</option><option>Spot</option><option>Overall</option><option>Panel</option></select></td>';
+      html += '<td style="padding:5px 6px"><input class="num-input" style="width:100%" id="prep-sand-'+i+'" type="number" step="0.5" min="0" placeholder="0.0"></td>';
+      html += '<td style="padding:5px 6px"><input class="num-input" style="width:100%" id="prep-tape-'+i+'" type="number" step="0.5" min="0" placeholder="0.0"></td>';
+      html += '<td style="padding:5px 6px"><select class="num-input" style="width:100%" id="prep-status-'+i+'"><option value="">—</option><option>Sanding</option><option>Taping</option><option>Done</option><option>Waiting</option></select></td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+    if (prev.filter(function(p){ return p.car && p.status !== 'Done'; }).length > 0) {
+      html += '<div style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-top:6px">↑ Pre-populated from last walk — update times and status.</div>';
+    }
+    html += '</div>';
+
+    // ── BLOCKER ───────────────────────────────────────────────
+    html += '<div style="border-top:0.5px solid var(--border);margin-top:.75rem;padding-top:.75rem">';
+    html += '<div class="zone-label" style="margin-bottom:.5rem">Active blocker</div>';
+    html += '<input class="field-input" id="walk-blocker" type="text" placeholder="e.g. Waiting on hood clips for Unit 7 — ordered, ETA unknown. Civic approval pending since 9AM.">';
+    html += '</div>';
+    html += '</div>'; // end floor card
+  }
+
+  // ── LOT / STAGING (every 3 hrs + EOD) ─────────────────────────
+  if (lot || eod) {
+    html += '<div class="card" style="margin-bottom:.75rem">';
+    html += '<div class="zone-header"><div class="zone-label">Lot / Staging</div><div class="zone-pill z-lot">lot</div></div>';
+    if (!eod) {
+      html += checkItem('Completed cars flagged and customer notified','Done car + no call = cash in your lot. Push Katie to call immediately.');
+      html += checkItem('New drop-offs written up with a start date assigned','Every new car gets a start date within 24 hours. Not "whenever."');
+      html += checkItem('Lot mix: spot and overall jobs both active simultaneously','Spots keep cash flowing. Overalls build ARO. Both must be in play.');
+    }
+    // Parts ordered field
+    html += '<div style="border-top:0.5px solid var(--border);margin-top:.75rem;padding-top:.75rem">';
+    html += '<div class="zone-label" style="margin-bottom:.25rem">Parts status — all cars waiting or newly dropped</div>';
+    html += '<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:.75rem">Log any car waiting on parts. If not ordered yet, note it — this is a blocker.</div>';
+    html += '<textarea class="field-textarea" id="walk-parts" style="min-height:60px" placeholder="e.g. Unit 12 (Silverado): bumper clips ordered Mon — no ETA. Unit 15 (Civic): needs door molding, NOT YET ORDERED."></textarea>';
+    html += '</div>';
+
+    if (eod) {
+      // EOD-specific lot items
+      html += '<div style="border-top:0.5px solid var(--border);margin-top:.75rem;padding-top:.75rem">';
+      html += '<div class="zone-label" style="margin-bottom:.5rem">End-of-day lot count</div>';
+      html += '<div class="inline-row"><div class="inline-lbl" style="font-size:12px">Total cars on property</div><input class="num-input" id="eod-lot-count" type="number" min="0" placeholder="0"></div>';
+      html += '</div>';
+    }
+    html += '</div>'; // end lot card
+  }
+
+  // ── EOD-SPECIFIC PROTOCOL ─────────────────────────────────────
+  if (eod) {
+    html += '<div class="card" style="margin-bottom:.75rem;border-color:rgba(200,240,96,0.25)">';
+    html += '<div class="zone-header"><div class="zone-label">End-of-day protocol</div><div class="zone-pill" style="background:rgba(200,240,96,0.12);color:var(--accent)">5PM only</div></div>';
+    html += checkItem('Tomorrow\'s first 3 cars are confirmed staged and ready','Painter walks in tomorrow and the first car is already staged. No hunting.');
+    html += checkItem('Every tech knows their first task tomorrow before they leave','Confirmed at 2PM debrief — verify it\'s still true at 5PM.');
+    html += checkItem('Shop is clean — floors swept, stations cleared','A clean shop starts faster. This is non-negotiable.');
+    html += checkItem('All doors secured and alarm set','Walk every door. Don\'t assume.');
+    html += '<div style="border-top:0.5px solid var(--border);margin-top:.75rem;padding-top:.75rem">';
+    html += '<div class="zone-label" style="margin-bottom:.5rem">Tomorrow\'s paint order — confirm top 3</div>';
+    html += '<input class="field-input" id="eod-paint-1" type="text" placeholder="1st car into paint tomorrow" style="margin-bottom:6px">';
+    html += '<input class="field-input" id="eod-paint-2" type="text" placeholder="2nd car" style="margin-bottom:6px">';
+    html += '<input class="field-input" id="eod-paint-3" type="text" placeholder="3rd car">';
+    html += '</div></div>';
+  }
+
+  // ── QUICK SCAN (every walk) ────────────────────────────────────
+  html += '<div class="card" style="margin-bottom:.75rem">';
+  html += '<div class="zone-header"><div class="zone-label">Quick Scan</div><div class="zone-pill z-always">every walk</div></div>';
+  if (!eod) {
+    html += checkItem('Identify the one car most at risk of missing its promise date','That car gets your attention before everything else.');
+  }
+  html += checkItem('Note one specific issue to raise at today\'s 2PM debrief','Track patterns across walks. One walk = observation. Three = problem.');
+
+  if (callout) {
+    html += '<div style="border-top:0.5px solid var(--border);margin-top:.75rem;padding-top:.75rem">';
+    html += '<div class="zone-label" style="margin-bottom:.25rem">Positive call-out for 2PM debrief</div>';
+    html += '<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:.5rem">Be specific — name the person and what they did. Not "good job" but "Tech 1 turned the Civic in 4 hrs."</div>';
+    html += '<input class="field-input" id="walk-callout" type="text" placeholder="e.g. Marco masked the Tahoe in 1.5 hrs — fastest tape job this week.">';
+    html += '</div>';
+  }
+
+  // Walk notes
+  html += '<div style="border-top:0.5px solid var(--border);margin-top:.75rem;padding-top:.75rem">';
+  html += '<div class="zone-label" style="margin-bottom:.5rem">Walk notes</div>';
+  html += '<textarea class="field-textarea" id="walk-notes" style="min-height:50px" placeholder="Any additional observations from this walk..."></textarea>';
+  html += '</div>';
+  html += '</div>'; // end quick scan card
+
+  return html;
+}
+
+function checkItem(main, sub) {
+  return '<div class="check-item"><div class="check-box" onclick="toggleCheck(this)"></div><div><div class="check-main">'+main+'</div><div class="check-sub">'+sub+'</div></div></div>';
+}
+
+function selectHour(btn, hour) {
+  document.querySelectorAll('.hour-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  state.currentHour = hour;
+  document.getElementById('walk-checklist-area').innerHTML = buildWalkHTML(hour);
+  document.getElementById('walk-complete').style.display = 'none';
+}
+
+function toggleCheck(box) {
+  box.classList.toggle('checked');
+  box.nextElementSibling.querySelector('.check-main').classList.toggle('checked');
+}
+
+function resetChecklist() {
+  if (state.currentHour) {
+    document.getElementById('walk-checklist-area').innerHTML = buildWalkHTML(state.currentHour);
+  }
+  document.getElementById('walk-complete').style.display = 'none';
+}
+
+function getVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+
+function logWalk() {
+  if (!state.currentHour) { showToast('Select an hour first.','error'); return; }
+  var hour = state.currentHour;
+  var total = document.querySelectorAll('#walk-checklist-area .check-box').length;
+  var checked = document.querySelectorAll('#walk-checklist-area .check-box.checked').length;
+  var notes = getVal('walk-notes');
+  var blocker = getVal('walk-blocker');
+  var callout = getVal('walk-callout');
+  var boothExit = getVal('booth-exit');
+  var boothCar = getVal('booth-car');
+  var parts = getVal('walk-parts');
+
+  // Collect prep data
+  var prepRows = [];
+  for (var i = 1; i <= 4; i++) {
+    var car = getVal('prep-car-'+i);
+    if (car) {
+      prepRows.push({
+        car: car,
+        type: getVal('prep-type-'+i),
+        sand: getVal('prep-sand-'+i),
+        tape: getVal('prep-tape-'+i),
+        status: getVal('prep-status-'+i)
+      });
+    }
+  }
+
+  // EOD fields
+  var eodLotCount = getVal('eod-lot-count');
+  var eodPaint = [getVal('eod-paint-1'),getVal('eod-paint-2'),getVal('eod-paint-3')].filter(Boolean).join(' · ');
+
+  var ts = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  var prepSummary = prepRows.map(function(r){ return r.car+' ['+r.type+'] sand:'+r.sand+'h tape:'+r.tape+'h ('+r.status+')'; }).join(' | ');
+
+  var entry = {
+    type: 'Walk',
+    time: ts,
+    detail: hour+' walk — '+checked+'/'+total+' items'+(blocker?' · BLOCKER: '+blocker.substring(0,40):'')
+  };
+  addLogEntry(entry);
+
+  var row = [
+    new Date().toLocaleDateString(), ts, state.email, 'WALK', hour,
+    checked+'/'+total,
+    boothExit, boothCar,
+    prepSummary,
+    blocker||'', callout||'', parts||'',
+    eodLotCount||'', eodPaint||'',
+    notes||''
+  ];
+  pushToSheet('Walks', row);
+
+  // Save prep data for carry-forward (include Done items so we know what completed)
+  state.lastPrepData = prepRows;
+  document.getElementById('walk-complete').style.display = 'block';
+  var btn = document.querySelector('.hour-btn.active');
+  if (btn) { btn.classList.add('done'); btn.classList.remove('active'); }
+  state.currentHour = '';
+  updateOwnerScorecard();
+  save();
+}
+
+// ─── FLOW ─────────────────────────────────────────────────────────
+function calcFlow() {
+  var cars = parseInt(document.getElementById('fp-cars').value)||0;
+  var aro = parseInt(document.getElementById('fp-aro').value)||0;
+  var wtd = parseInt(document.getElementById('fp-wtd').value)||0;
+  var dayRev = cars * aro;
+  var newWtd = wtd + dayRev;
+  var pct = Math.min(Math.round(newWtd / state.weeklyTarget * 100), 100);
+
+  document.getElementById('fm-cars').textContent = cars;
+  document.getElementById('fm-rev').textContent = '$' + dayRev.toLocaleString();
+  document.getElementById('fm-pct').textContent = pct + '%';
+
+  var bar = document.getElementById('flow-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'prog-fill' + (pct >= 100 ? '' : pct >= 60 ? '' : ' warn');
+
+  document.getElementById('flow-bar-label').textContent = '$' + newWtd.toLocaleString() + ' of $24,000';
+  document.getElementById('flow-bar-pct').textContent = pct + '%';
+
+  state.wtd = newWtd;
+  updateNorthStar();
+}
+
+function logFlow() {
+  var cars = document.getElementById('fp-cars').value;
+  var aro = document.getElementById('fp-aro').value;
+  var wtd = document.getElementById('fp-wtd').value;
+  var booth = document.getElementById('fp-booth').value;
+  var prep = document.getElementById('fp-prep').value;
+  var wait = document.getElementById('fp-wait').value;
+  var notes = document.getElementById('fp-notes').value;
+  var ts = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+  var entry = { type:'Flow Plan', time:ts, detail:'Cars: '+cars+' · ARO: $'+aro+' · WTD: $'+wtd };
+  addLogEntry(entry);
+
+  var row = [new Date().toLocaleDateString(), ts, state.email, 'FLOW_PLAN', cars, aro, wtd, booth, prep, wait, notes||''];
+  pushToSheet('FlowPlans', row);
+  showToast('Daily plan saved ✓','success');
+  save();
+}
+
+// ─── DEBRIEF ─────────────────────────────────────────────────────
+function logDebrief() {
+  var fields = ['db-1','db-2','db-3','db-4','db-5','db-6'];
+  var vals = fields.map(function(id){ return document.getElementById(id).value || '—'; });
+  var ts = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+  var entry = { type:'2PM Debrief', time:ts, detail: vals[0].substring(0,60) + '…' };
+  addLogEntry(entry);
+
+  var row = [new Date().toLocaleDateString(), ts, state.email, '2PM_DEBRIEF'].concat(vals);
+  pushToSheet('Debriefs', row);
+  showToast('Debrief logged ✓','success');
+  fields.forEach(function(id){ document.getElementById(id).value=''; });
+  save();
+}
+
+// ─── AR ───────────────────────────────────────────────────────────
+function addAR() {
+  var name = document.getElementById('ar-name').value.trim();
+  var inv = document.getElementById('ar-inv').value.trim();
+  var days = parseInt(document.getElementById('ar-days').value)||0;
+  var amt = parseFloat(document.getElementById('ar-amt').value)||0;
+  var notes = document.getElementById('ar-notes').value.trim();
+
+  if(!name||!days||!amt){showToast('Fill in customer, days, and amount.','error');return;}
+
+  var entry = {name,inv,days,amt,notes};
+  state.arData.push(entry);
+  renderAR();
+
+  var ts = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  var row = [new Date().toLocaleDateString(), ts, state.email, 'AR', name, inv, days, amt, notes||''];
+  pushToSheet('AR', row);
+
+  var logEntry = {type:'AR Entry', time:ts, detail:name+' — $'+amt.toLocaleString()+' ('+days+' days)'};
+  addLogEntry(logEntry);
+
+  ['ar-name','ar-inv','ar-days','ar-amt','ar-notes'].forEach(function(id){document.getElementById(id).value='';});
+  showToast('Invoice added ✓','success');
+  save();
+}
+
+function removeAR(idx) {
+  state.arData.splice(idx,1);
+  renderAR();
+  save();
+}
+
+function renderAR() {
+  var tbody = document.getElementById('ar-body');
+  var hot=0, warn=0, ok=0;
+
+  if (!state.arData.length) {
+    tbody.innerHTML='<tr><td colspan="6" style="color:var(--text3);text-align:center;padding:1.5rem;font-family:var(--mono);font-size:12px">No invoices logged yet</td></tr>';
+    document.getElementById('ar-hot').textContent='0';
+    document.getElementById('ar-warn').textContent='0';
+    document.getElementById('ar-ok').textContent='0';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  state.arData.forEach(function(r,i){
+    var cls = r.days>=7 ? 's-hot' : r.days>=4 ? 's-warn' : 's-ok';
+    var label = r.days>=7 ? 'Act now' : r.days>=4 ? 'Follow up' : 'On track';
+    if(r.days>=7) hot++; else if(r.days>=4) warn++; else ok++;
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+r.name+'</td><td>'+r.inv+'</td><td>'+r.days+' days</td><td>$'+r.amt.toLocaleString()+'</td><td><span class="status-pill '+cls+'">'+label+'</span></td><td><button onclick="removeAR('+i+')" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:var(--mono)">remove</button></td>';
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('ar-hot').textContent = hot;
+  document.getElementById('ar-warn').textContent = warn;
+  document.getElementById('ar-ok').textContent = ok;
+}
+
+// ─── LOG ──────────────────────────────────────────────────────────
+function addLogEntry(entry) {
+  state.logEntries.unshift(entry);
+  renderLog();
+}
+
+function renderLog() {
+  var list = document.getElementById('log-list');
+  if (!state.logEntries.length) {
+    list.innerHTML='<div style="color:var(--text3);font-family:var(--mono);font-size:13px;padding:2rem 0;text-align:center">No activity logged yet today. Start with your first hourly walk.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  state.logEntries.forEach(function(e){
+    var div = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = '<div><div class="log-label">'+e.detail+'</div><div class="log-time">'+e.time+'</div></div><span class="log-badge">'+e.type+'</span>';
+    list.appendChild(div);
+  });
+}
+
+// ─── NORTH STAR ───────────────────────────────────────────────────
+function updateNorthStar() {
+  var gap = Math.max(0, state.weeklyTarget - state.wtd);
+  document.getElementById('ns-wtd').textContent = '$' + state.wtd.toLocaleString();
+  document.getElementById('ns-gap').textContent = '$' + gap.toLocaleString();
+  document.getElementById('ns-gap').style.color = gap === 0 ? 'var(--good)' : gap < 8000 ? 'var(--warn)' : 'var(--danger)';
+}
+
+// ─── GOOGLE SHEETS SYNC ───────────────────────────────────────────
+function pushToSheet(tab, rowData) {
+  setSyncStatus('syncing');
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tab: tab, row: rowData })
+  })
+  .then(function(){ setSyncStatus('synced'); showToast('Synced to Google Sheets ✓','success'); })
+  .catch(function(){ setSyncStatus('error'); showToast('Network error — data saved locally.','error'); });
+}
+
+function setSyncStatus(status) {
+  var dot = document.getElementById('sync-dot');
+  var lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + (status==='synced'?'synced':status==='syncing'?'syncing':'');
+  lbl.textContent = status==='synced'?'synced to sheets':status==='syncing'?'syncing…':'sync error';
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type||'');
+  setTimeout(function(){ t.className = 'toast'; }, 3200);
+}
+
+// ─── OWNER SCORECARD ─────────────────────────────────────────────
+function calcOwnerScore() {
+  var walks = parseInt(document.getElementById('ow-walks').value)||0;
+  var debriefs = parseInt(document.getElementById('ow-debriefs').value)||0;
+  var rev = parseInt(document.getElementById('ow-rev').value)||0;
+  var ar = parseInt(document.getElementById('ow-ar').value)||0;
+
+  var walkPct = Math.min(Math.round(walks/40*100),100);
+  var debriefPct = Math.min(Math.round(debriefs/5*100),100);
+  var revPct = Math.min(Math.round(rev/24000*100),100);
+  var arPct = Math.min(ar*10,100);
+
+  document.getElementById('score-walks-bar').style.width = walkPct+'%';
+  document.getElementById('score-debrief-bar').style.width = debriefPct+'%';
+  document.getElementById('score-rev-bar').style.width = revPct+'%';
+  document.getElementById('score-ar-bar').style.width = arPct+'%';
+
+  document.getElementById('score-walks-lbl').textContent = walks+' / 40 target';
+  document.getElementById('score-debrief-lbl').textContent = debriefs+' / 5 target';
+  document.getElementById('score-rev-lbl').textContent = '$'+rev.toLocaleString()+' / $24,000';
+  document.getElementById('score-ar-lbl').textContent = ar+' logged';
+
+  // bar colors
+  ['score-walks-bar','score-debrief-bar','score-rev-bar'].forEach(function(id){
+    var bar = document.getElementById(id);
+    var w = parseInt(bar.style.width);
+    bar.className = 'prog-fill' + (w>=80?'':w>=50?' warn':' danger');
+  });
+
+  var overall = Math.round((walkPct*0.35)+(debriefPct*0.25)+(revPct*0.3)+(arPct*0.1));
+  var rating = overall>=85?'On track — keep coaching':overall>=65?'Developing — more reps needed':overall>=40?'Needs intervention':'Critical — direct support required';
+  var ratingColor = overall>=85?'var(--good)':overall>=65?'var(--accent)':overall>=40?'var(--warn)':'var(--danger)';
+
+  document.getElementById('overall-score').textContent = overall+'%';
+  document.getElementById('overall-score').style.color = ratingColor;
+  document.getElementById('overall-rating').textContent = rating;
+  document.getElementById('overall-rating').style.color = ratingColor;
+
+  state.ownerScore = {walks,debriefs,rev,ar,overall};
+  save();
+}
+
+function updateOwnerScorecard() {
+  if (!isOwner()) return;
+  var logs = state.logEntries || [];
+  var today = new Date().toLocaleDateString();
+  var walksToday = logs.filter(function(e){return e.type==='Walk';}).length;
+  var debriefToday = logs.some(function(e){return e.type==='2PM Debrief';});
+  var arToday = logs.filter(function(e){return e.type==='AR Entry';}).length;
+
+  document.getElementById('sc-walks').textContent = walksToday;
+  document.getElementById('sc-walks').className = 'metric-val ' + (walksToday>=4?'v-good':walksToday>=2?'v-warn':'v-danger');
+  document.getElementById('sc-debrief').textContent = debriefToday?'Yes ✓':'Not yet';
+  document.getElementById('sc-debrief').style.color = debriefToday?'var(--good)':'var(--warn)';
+  document.getElementById('sc-ar').textContent = arToday;
+  document.getElementById('sc-wtd').textContent = '$'+state.wtd.toLocaleString();
+
+  // restore saved weekly inputs
+  if (state.ownerScore) {
+    if(state.ownerScore.walks) document.getElementById('ow-walks').value = state.ownerScore.walks;
+    if(state.ownerScore.debriefs) document.getElementById('ow-debriefs').value = state.ownerScore.debriefs;
+    if(state.ownerScore.rev) document.getElementById('ow-rev').value = state.ownerScore.rev;
+    if(state.ownerScore.ar) document.getElementById('ow-ar').value = state.ownerScore.ar;
+    calcOwnerScore();
+  }
+
+  // restore coaching notes
+  if (state.coachingNotes) {
+    if(document.getElementById('cn-good')) document.getElementById('cn-good').value = state.coachingNotes.good||'';
+    if(document.getElementById('cn-improve')) document.getElementById('cn-improve').value = state.coachingNotes.improve||'';
+    if(document.getElementById('cn-focus')) document.getElementById('cn-focus').value = state.coachingNotes.focus||'';
+  }
+}
+
+function saveCoachingNotes() {
+  var notes = {
+    good: document.getElementById('cn-good').value,
+    improve: document.getElementById('cn-improve').value,
+    focus: document.getElementById('cn-focus').value
+  };
+  state.coachingNotes = notes;
+  save();
+  showToast('Coaching notes saved ✓','success');
+}
+
+
+// ─── SCORECARD ────────────────────────────────────────────────────
+var cccData = [];
+
+var PREP_BENCHMARKS = {
+  spot:    { sand: 0.5, tape: 0.5 },
+  overall: { sand: 1.5, tape: 1.5 }
+};
+
+var PREPPERS = [
+  { name: 'Darnell Bruce',    key: 'darnell' },
+  { name: 'Cole McIntock',    key: 'cole'    },
+  { name: 'Eric Vanmetre',    key: 'eric'    },
+  { name: 'Anthony Sanford',  key: 'anthony' }
+];
+
+function ratingClass(r) {
+  if (r === 'Needs Improvement')    return 'r-ni';
+  if (r === 'Below Expectations')   return 'r-be';
+  if (r === 'Meets Expectations')   return 'r-me';
+  if (r === 'Exceeds Expectations') return 'r-ee';
+  return 'r-be';
+}
+
+function painterRating(avg) {
+  if (avg < 2)  return 'Needs Improvement';
+  if (avg < 3)  return 'Below Expectations';
+  if (avg < 5)  return 'Meets Expectations';
+  return 'Exceeds Expectations';
+}
+
+function techRating(hrs) {
+  if (hrs < 30)  return 'Needs Improvement';
+  if (hrs < 60)  return 'Below Expectations';
+  if (hrs < 80)  return 'Meets Expectations';
+  return 'Exceeds Expectations';
+}
+
+function prepperRating(ss, st, os, ot, breaks) {
+  var scores = [];
+  if (ss) scores.push(ss / PREP_BENCHMARKS.spot.sand);
+  if (st) scores.push(st / PREP_BENCHMARKS.spot.tape);
+  if (os) scores.push(os / PREP_BENCHMARKS.overall.sand);
+  if (ot) scores.push(ot / PREP_BENCHMARKS.overall.tape);
+  if (!scores.length) return '—';
+  var avg = scores.reduce(function(a,b){return a+b;},0) / scores.length;
+  var breakPenalty = (breaks || 0) * 0.05;
+  var adjusted = avg + breakPenalty;
+  if (adjusted > 1.3)  return 'Needs Improvement';
+  if (adjusted > 1.15) return 'Below Expectations';
+  if (adjusted > 0.99) return 'Meets Expectations';
+  return 'Exceeds Expectations';
+}
+
+function teamStanding(revPct, painterAvg, avgCycle, totalHrs) {
+  var score = 0;
+  // Revenue vs target 30%
+  score += Math.min(revPct, 100) * 0.30;
+  // Painter cycles 25%
+  var pScore = Math.min((painterAvg / 5) * 100, 100);
+  score += pScore * 0.25;
+  // Cycle time 25% — target 5 days, under is better
+  var cScore = avgCycle > 0 ? Math.min((5 / avgCycle) * 100, 100) : 0;
+  score += cScore * 0.25;
+  // Labor hours 20% — target 200 combined (2 techs x 100)
+  var hScore = Math.min((totalHrs / 200) * 100, 100);
+  score += hScore * 0.20;
+
+  if (score < 40)  return { label: 'Needs Work',    cls: 'standing-ni' };
+  if (score < 60)  return { label: 'Developing',    cls: 'standing-be' };
+  if (score < 75)  return { label: 'On Track',      cls: 'standing-me' };
+  if (score < 90)  return { label: 'Strong',        cls: 'standing-me' };
+  return               { label: 'Exceptional',   cls: 'standing-ee' };
+}
+
+function barClass(pct) {
+  return pct >= 80 ? 'prog-fill' : pct >= 50 ? 'prog-fill warn' : 'prog-fill danger';
+}
+
+function gv(id) { var el = document.getElementById(id); return el ? (parseFloat(el.value)||0) : 0; }
+
+function calcScorecard() {
+  // ── Painter ──────────────────────────────────────────────────
+  var days = ['mon','tue','wed','thu','fri'];
+  var cycles = days.map(function(d){ return gv('p-'+d); });
+  var totalCycles = cycles.reduce(function(a,b){return a+b;},0);
+  var workDays = cycles.filter(function(c){return c>0;}).length || 1;
+  var avgCycles = Math.round((totalCycles/workDays)*10)/10;
+  var bestDay = Math.max.apply(null, cycles);
+  var redos = gv('p-redo');
+  var pRating = painterRating(avgCycles);
+  var pBarPct = Math.min(Math.round((avgCycles/5)*100),100);
+
+  document.getElementById('jd-cycles').textContent = avgCycles;
+  document.getElementById('jd-total').textContent = totalCycles;
+  document.getElementById('jd-redo').textContent = redos;
+  document.getElementById('jd-best').textContent = bestDay;
+  document.getElementById('jd-bar-label').textContent = avgCycles+' / 5 target';
+  document.getElementById('jd-bar').style.width = pBarPct+'%';
+  document.getElementById('jd-bar').className = barClass(pBarPct);
+  var pRatingEl = document.getElementById('rating-joshua');
+  pRatingEl.textContent = pRating;
+  pRatingEl.className = 'sc-rating-pill ' + ratingClass(pRating);
+
+  // ── Body Techs ────────────────────────────────────────────────
+  var dennisHrs = gv('bt-dennis');
+  var daltonHrs = gv('bt-dalton');
+  var totalHrs = dennisHrs + daltonHrs;
+
+  function renderTech(hrs, prefix, ratingId) {
+    var rating = techRating(hrs);
+    var pct = Math.min(Math.round((hrs/100)*100),100);
+    document.getElementById(prefix+'-hours').textContent = hrs;
+    document.getElementById(prefix+'-pct').textContent = Math.round((hrs/100)*100)+'%';
+    document.getElementById(prefix+'-bar-label').textContent = hrs+' / 100 exceeds';
+    document.getElementById(prefix+'-bar').style.width = pct+'%';
+    document.getElementById(prefix+'-bar').className = barClass(pct);
+    var rEl = document.getElementById(ratingId);
+    rEl.textContent = rating;
+    rEl.className = 'sc-rating-pill ' + ratingClass(rating);
+  }
+  renderTech(dennisHrs, 'dh', 'rating-dennis');
+  renderTech(daltonHrs, 'rb', 'rating-dalton');
+
+  // ── Preppers ──────────────────────────────────────────────────
+  var prepperCardsHtml = '';
+  PREPPERS.forEach(function(pp) {
+    var k = pp.key;
+    var ss = gv('pp-'+k+'-ss');
+    var st = gv('pp-'+k+'-st');
+    var os = gv('pp-'+k+'-os');
+    var ot = gv('pp-'+k+'-ot');
+    var br = gv('pp-'+k+'-breaks');
+    var rating = prepperRating(ss, st, os, ot, br);
+    var rCls = ratingClass(rating);
+    var isAnthony = k === 'anthony';
+
+    prepperCardsHtml += '<div class="sc-employee-card">';
+    prepperCardsHtml += '<div class="sc-emp-header">';
+    prepperCardsHtml += '<div><div class="sc-emp-name">'+pp.name+'</div>';
+    prepperCardsHtml += '<div class="sc-emp-role">'+(isAnthony?'Prepper / Floater':'Prepper')+'</div></div>';
+    prepperCardsHtml += '<div class="sc-rating-pill '+rCls+'">'+rating+'</div>';
+    prepperCardsHtml += '</div>';
+    prepperCardsHtml += '<div class="sc-emp-metrics">';
+    prepperCardsHtml += '<div class="sc-emp-metric"><div class="sc-emp-metric-val">'+( ss||'—')+'h</div><div class="sc-emp-metric-lbl">Spot Sand</div></div>';
+    prepperCardsHtml += '<div class="sc-emp-metric"><div class="sc-emp-metric-val">'+(st||'—')+'h</div><div class="sc-emp-metric-lbl">Spot Tape</div></div>';
+    prepperCardsHtml += '<div class="sc-emp-metric"><div class="sc-emp-metric-val">'+(os||'—')+'h</div><div class="sc-emp-metric-lbl">Overall Sand</div></div>';
+    prepperCardsHtml += '<div class="sc-emp-metric"><div class="sc-emp-metric-val">'+(ot||'—')+'h</div><div class="sc-emp-metric-lbl">Overall Tape</div></div>';
+    prepperCardsHtml += '<div class="sc-emp-metric"><div class="sc-emp-metric-val" style="color:'+(br>0?'var(--danger)':'var(--good)')+'">'+br+'</div><div class="sc-emp-metric-lbl">Pipeline Breaks</div></div>';
+
+    // Benchmark bars
+    if (ss) {
+      var ssPct = Math.min(Math.round((PREP_BENCHMARKS.spot.sand/ss)*100),100);
+      prepperCardsHtml += '</div><div class="sc-emp-bar-wrap">';
+      var benchLabel = 'Spot sand — target '+PREP_BENCHMARKS.spot.sand+'h';
+      prepperCardsHtml += '<div class="sc-emp-bar-label"><span>'+benchLabel+'</span><span>'+ss+'h avg '+(ss<=PREP_BENCHMARKS.spot.sand?'✓ on target':'↑ over benchmark')+'</span></div>';
+      prepperCardsHtml += '<div class="prog-track"><div class="'+barClass(ssPct)+'" style="width:'+ssPct+'%"></div></div>';
+    } else {
+      prepperCardsHtml += '</div>';
+    }
+    prepperCardsHtml += '</div>';
+  });
+  document.getElementById('prepper-cards').innerHTML = prepperCardsHtml;
+
+  // ── Team Standing ─────────────────────────────────────────────
+  var revenue = cccData.totalRevenue || 0;
+  var cars = cccData.totalCars || 0;
+  var aro = cars > 0 ? Math.round(revenue/cars) : 0;
+  var avgCycle = cccData.avgCycleTime || 0;
+  var revPct = Math.min((revenue/24000)*100, 100);
+  var standing = teamStanding(revPct, avgCycles, avgCycle, totalHrs);
+
+  document.getElementById('ts-revenue').textContent = '$'+(revenue||0).toLocaleString();
+  document.getElementById('ts-cars').textContent = cars || '—';
+  document.getElementById('ts-aro').textContent = aro ? '$'+aro.toLocaleString() : '—';
+  document.getElementById('ts-cycle').textContent = avgCycle ? avgCycle.toFixed(1)+' days' : '—';
+  document.getElementById('ts-hours').textContent = totalHrs ? totalHrs+'h' : '—';
+  document.getElementById('team-standing-val').textContent = standing.label;
+  var banner = document.getElementById('team-banner');
+  banner.className = 'standing-banner ' + standing.cls;
+
+  // Week label
+  var now = new Date();
+  document.getElementById('sc-week-label').textContent = 'Week of ' + now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  document.getElementById('scorecard-output').style.display = 'block';
+}
+
+function parseCCCFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split('\n').filter(function(l){return l.trim();});
+    var preview = document.getElementById('ccc-preview');
+    preview.style.display = 'block';
+
+    // Parse CSV — columns: RO Closed, Posted Date, Vehicle Out, RO#, Owner,
+    // Insurance, Vehicle, Target Date, Days in Shop, Estimator, RO Hours, Estimate $, Total
+    var rows = [];
+    var totalRevenue = 0;
+    var totalCars = 0;
+    var totalCycleDays = 0;
+    var totalHours = 0;
+    var parseErrors = 0;
+
+    lines.forEach(function(line, idx) {
+      if (idx === 0) return; // skip header
+      var cols = line.split(',');
+      if (cols.length < 13) return;
+      var daysInShop = parseFloat(cols[8]) || 0;
+      var roHours = parseFloat(cols[10]) || 0;
+      var total = parseFloat((cols[12]||'').replace(/[$,"]/g,'')) || 0;
+      if (total > 0) {
+        totalRevenue += total;
+        totalCars++;
+        totalCycleDays += daysInShop;
+        totalHours += roHours;
+      }
+    });
+
+    cccData = {
+      totalRevenue: Math.round(totalRevenue),
+      totalCars: totalCars,
+      avgCycleTime: totalCars > 0 ? Math.round((totalCycleDays/totalCars)*10)/10 : 0,
+      totalHours: Math.round(totalHours*10)/10
+    };
+
+    preview.innerHTML = '<strong style="color:var(--accent)">CCC Import — '+totalCars+' ROs parsed</strong><br>' +
+      'Total revenue: $'+totalRevenue.toLocaleString()+'<br>' +
+      'Avg cycle time: '+(cccData.avgCycleTime)+' days<br>' +
+      'Total RO hours: '+cccData.totalHours+'h<br>' +
+      '<span style="color:var(--text3)">Click Generate Scorecard to apply.</span>';
+
+    calcScorecard();
+  };
+  reader.readAsText(file);
+}
+
+
+function parseLaborFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split('\n').filter(function(l){return l.trim();});
+    var preview = document.getElementById('labor-preview');
+    preview.style.display = 'block';
+
+    // Match tech names flexibly — look for Dennis and Dalton in any column
+    var dennisHrs = 0, daltonHrs = 0;
+    var matched = [];
+
+    lines.forEach(function(line, idx) {
+      if (idx === 0) return;
+      var lower = line.toLowerCase();
+      // Find hours — last numeric value in the row
+      var nums = line.match(/[\d]+\.?[\d]*/g) || [];
+      var hrs = nums.length ? parseFloat(nums[nums.length-1]) : 0;
+      if (lower.includes('hadley') || lower.includes('dennis')) {
+        dennisHrs = hrs;
+        matched.push('Dennis Hadley: '+hrs+'h');
+      }
+      if (lower.includes('barlow') || lower.includes('dalton')) {
+        daltonHrs = hrs;
+        matched.push('Dalton Barlow: '+hrs+'h');
+      }
+    });
+
+    // Auto-populate the manual fields
+    if (dennisHrs) { var d = document.getElementById('bt-dennis'); if(d) d.value = dennisHrs; }
+    if (daltonHrs) { var b = document.getElementById('bt-dalton'); if(b) b.value = daltonHrs; }
+
+    preview.innerHTML = '<strong style="color:var(--accent)">Labor Import — '+matched.length+' techs matched</strong><br>' +
+      (matched.length ? matched.join('<br>') : '<span style="color:var(--warn)">No matching tech names found. Check that the report includes last names (Hadley, Barlow).</span>') +
+      '<br><span style="color:var(--text3)">Fields auto-populated below.</span>';
+
+    calcScorecard();
+  };
+  reader.readAsText(file);
+}
+
+function resetScorecard() {
+  cccData = {};
+  document.getElementById('scorecard-output').style.display = 'none';
+  document.getElementById('ccc-preview').style.display = 'none';
+  ['p-mon','p-tue','p-wed','p-thu','p-fri','p-redo',
+   'bt-dennis','bt-dalton',
+   'pp-darnell-breaks','pp-cole-breaks','pp-eric-breaks','pp-anthony-breaks',
+   'pp-darnell-ss','pp-darnell-st','pp-darnell-os','pp-darnell-ot',
+   'pp-cole-ss','pp-cole-st','pp-cole-os','pp-cole-ot',
+   'pp-eric-ss','pp-eric-st','pp-eric-os','pp-eric-ot',
+   'pp-anthony-ss','pp-anthony-st','pp-anthony-os','pp-anthony-ot'
+  ].forEach(function(id){ var el = document.getElementById(id); if(el) el.value=''; });
+  var lp = document.getElementById('labor-preview');
+  if (lp) { lp.style.display='none'; lp.innerHTML=''; }
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────
+checkSession();
+</script>
+</body>
+</html>
